@@ -11,9 +11,9 @@ class ValueSingleDispatch:
 
     def register(self, _key):
         def decorator(fn: callable):
-            if key in self._handlers:
-                raise KeyError(key)
-            self._handlers[_key] = fn
+            if _key in self.handlers_:
+                raise KeyError(_key)
+            self.handlers_[_key] = fn
             return fn
 
         return decorator
@@ -22,8 +22,8 @@ class ValueSingleDispatch:
         self.default_handler_ = default
 
     def call(self, _key, *args, **kwargs):
-        if _key in self._handlers:
-            handler = self._handlers[_key]
+        if _key in self.handlers_:
+            handler = self.handlers_[_key]
         elif self.default_handler_ is not None:
             handler = functools.partial(self.default_handler_, _key)
         else:

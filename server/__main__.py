@@ -8,11 +8,11 @@ MAX_GUESSES = 5
 LOG_PREFIX = 'GameServer'
 
 async def run_game_server(hosts: List[str], port: int, logger):
-    server = GameServer(max_guessed=MAX_GUESSES, magic_word='blob', logger=logger)
+    server = GameServer(max_guesses=MAX_GUESSES, magic_word='blob', logger=logger)
     serve_coros = map(lambda host: server.serve_forever(host, port),
                       hosts)
-    done, pending = asyncio.wait(serve_coros)
-    assert not pending
+    for coro in serve_coros:
+        await coro
 
 def main():
     parser = argparse.ArgumentParser()

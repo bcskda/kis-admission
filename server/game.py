@@ -10,7 +10,7 @@ class GameServer(StepBasedGameServer):
     Tries left: {tries_left}
     '''
 
-    HELP_FMT = '''Hello, {peer}!
+    HELP_FMT = '''Hello, peer!
         You have {tries} tries to guess the word.
         Type in letters.
         Type ? to view game state.
@@ -19,7 +19,7 @@ class GameServer(StepBasedGameServer):
 
     ASCII = set(string.ascii_lowercase)
 
-    def __init__(self, *args, *, max_guesses: int, magic_word: str, **kwargs):
+    def __init__(self, max_guesses: int, magic_word: str, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_guesses = max_guesses
         self.magic_word = magic_word
@@ -70,8 +70,9 @@ class GameServer(StepBasedGameServer):
         return response
 
     async def send_help(self, writer):
-        peer_addr = writer.get_extra_info('peername')
-        intro = self.HELP_FMT.format(peer=peer_addr, tries=self.max_tries)
+        # peer_addr = writer.get_extra_info('peername')
+        # intro = self.HELP_FMT.format(peer=peer_addr, tries=self.max_tries)
+        intro = self.HELP_FMT.format(tries=self.max_tries)
         self.send_response(intro)
 
     def make_info_message(self, state: dict, headline: str):
