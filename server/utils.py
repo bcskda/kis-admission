@@ -2,6 +2,34 @@ import asyncio
 import logging
 
 
+ENCODING = 'utf-8'
+
+class ValueSingleDispatch:
+    def __init__(self):
+        self.default_handler_ = None
+        self.handlers_ = dict()
+
+    def register(self, _key):
+        def decorator(fn: callable):
+            if key in self._handlers:
+                raise KeyError(key)
+            self._handlers[_key] = fn
+            return fn
+
+        return decorator
+
+    def set_default(self, default: callable):
+        self.default_handler_ = default
+
+    def call(self, _key, *args, **kwargs):
+        if _key in self._handlers:
+            handler = self._handlers[_key]
+        elif self.default_handler_ is not None:
+            handler = functools.partial(self.default_handler_, _key)
+        else:
+            raise KeyError(_key)
+        return handler(*args, **kwargs)
+
 class BaseTcpServer:
     def __init__(self, *, logger = None):
         if logger is None:
@@ -30,4 +58,25 @@ class BaseGameServer(BaseTcpServer):
             self.logger_.info('Client disconnect %s', peer_addr)
 
     async def play_with_client(self, reader, writer):
+        raise NotImplementedError()
+
+class StepBasedGameServer(BaseGameServer):
+    async def play_with_client(self, reader, writer):
+        state = await self.start_game(reader, writer)
+        while not self.game_finished(state):
+            await self.game_step(state)
+        await self.finish_game(reader, writer, state)
+
+    async def recv_command(self, reader) -> str:
+        raw = await reader.readline()
+        return raw.decode(ENCODING)
+
+    async def send_response(self, writer, response: str):
+        writer.write(response.encode(ENCODING))
+        await writer.drain()
+
+    async def game_step(self, state: dict):
+        raise NotImplementedError()
+
+    async def game_finished(self, state: dict):
         raise NotImplementedError()
